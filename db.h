@@ -9,6 +9,13 @@ typedef void* db_t;
 // create and initialize a db
 db_t create_db(char* name);
 
+// open db by name
+db_t open_db(char* name);
+
+// close the db and free all of its resource
+void close_db(db_t db);
+
+// return the name of the db
 char* get_db_name(db_t db);
 
 // Search the db using key
