@@ -50,7 +50,7 @@ int main() {
     } else if (strcmp(opcode, "get") == 0) {
       key_t key = operand;
       val_t val = get(db, key);
-      printf("RET = %s\n", val);
+      printf("RET = %s\n", val == NULL ? "NULL": val);
     } else if (strcmp(opcode, "put") == 0) {
       key_t key = operand;
       val_t val = operand2;
