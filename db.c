@@ -114,6 +114,16 @@ int hashing(char arr[], int arr_size)
 	return result % 10;
 }
 
+db_t open_db(char* name) {
+  // Please implement this
+  return NULL;
+}
+
+void close_db(db_t db) {
+  // Please implement this
+}
+
+
 // Search the db using key
 // return the value if exist otherwise return NULL
 val_t get(db_t db, key_t key)
