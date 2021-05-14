@@ -28,7 +28,7 @@ int main() {
   db_t db;
   while ((read = getline(&buf, &len, stdin) != -1)) {
     char opcode[64], operand[1024], operand2[1024];
-    sscanf(buf, "%s %s", opcode, operand);
+    sscanf(buf, "%s %s %s", opcode, operand, operand2);
 
     if (strcmp(opcode, "create_db") == 0) {
       db = create_db(operand);
