@@ -19,47 +19,64 @@ bool one_of_strings(char* target, char* strings[], int length) {
   return false;
 }
 
+size_t getline(char**, size_t*, FILE*);
+
 int main() {
 
-  db_t db = create_db("test_db");
-  check(db != NULL, "Can not create db");
+  char* buf = (char*)malloc(1024);
+  size_t len, read;
+  db_t db;
+  while ((read = getline(&buf, &len, stdin) != -1)) {
+    char opcode[64], operand[1024], operand2[1024];
+    sscanf(buf, "%s %s", opcode, operand);
 
-  check(true == put(db, "key1", "value_1"), "Can not put to db");
-
-  val_t ret = get(db, "key1");
-  check(ret != NULL, "Can not get key1 from db");
-  check(strcmp(ret, "value_1") == 0, "Return value doesnt match");
-
-  check(false == put(db, "key1", "value_2"), "Expect duplicated key fail.");
-  check(true == put(db, "key2", "value_2"), "Fail to put 2nd pair");
-
-  ret = get(db, "key2");
-  check(ret != NULL, "Can not get key2 from db");
-  check(strcmp(ret, "value_2") == 0, "Return value doesnt match");
-
-  check(remove_key(db, "key3"), "key3 doesn't exist");
-  check(true == remove_key(db, "key1"), "Can not remove key1");
-  check(get(db, "key1") == NULL, "key1 has been removed");
-  check(false == update(db, "key1", "whatever"), "key1 has been removed");
-  check(true == update(db, "key2", "new_value"), "can not update key2");
-
-  ret = get(db, "key2");
-  check(ret != NULL, "Can not get key2 from db");
-  check(strcmp(ret, "new_value") == 0, "Return value doesnt match");
-  check(true == put(db, "key3", "new_value"), "Fail to put key3");
-  check(true == put(db, "key4", "new_value"), "Fail to put key4");
-
-  query_result_t qr = query(db, "new_value");
-  char* keys[] = {"key2", "key3", "key4"};
-  query_result_t current = qr;
-  int num_of_keys = 0;
-  while(current != NULL) {
-    check(one_of_strings(current->key, keys, 3) == true, "Return key doesn't exist");
-    current = current->next;
-    num_of_keys += 1;
+    if (strcmp(opcode, "create_db") == 0) {
+      db = create_db(operand);
+      if (db != NULL) {
+        printf("Success.\n");
+      } else {
+        printf("Fail.\n");
+      }
+    } else if (strcmp(opcode, "open_db") == 0) {
+      db = open_db(operand);
+      if (db != NULL) {
+        printf("Success.\n");
+      } else {
+        printf("Fail.\n");
+      }
+    } else if (strcmp(opcode, "close_db") == 0) {
+      close_db(db);
+      printf("Success.\n");
+    } else if (strcmp(opcode, "get") == 0) {
+      key_t key = operand;
+      val_t val = get(db, key);
+      printf("RET = %s\n", val);
+    } else if (strcmp(opcode, "put") == 0) {
+      key_t key = operand;
+      val_t val = operand2;
+      bool ret = put(db, key, val);
+      printf("RET = %s\n", ret ? "true" : "false");
+    } else if (strcmp(opcode, "remove_key") == 0) {
+      key_t key = operand;
+      bool ret = remove_key(db, key);
+      printf("RET = %s\n", ret ? "true" : "false");
+    } else if (strcmp(opcode, "update") == 0) {
+      key_t key = operand;
+      val_t val = operand2;
+      bool ret = update(db, key, val);
+      printf("RET = %s\n", ret ? "true" : "false");
+    } else if (strcmp(opcode, "query") == 0) {
+      val_t val = operand;
+      query_result_t qr = query(db, val);
+      printf("RET = %s", qr == NULL ? "NULL" : qr->key);
+      query_result_t cur = qr;
+      while(cur != NULL) {
+        cur = cur->next;
+        printf(",%s", cur->key);
+      }
+      printf("\n");
+      delete_query_result(qr);
+    }
   }
-  check(num_of_keys == 3, "should return 3 keys");
-
-  printf("All test passes.");
   return 0;
 }
