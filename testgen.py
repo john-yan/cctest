@@ -30,7 +30,7 @@ def main():
     inp.write("create_db db1\n")
     out.write('create_db Success.\n')
 
-    for i in range(100):
+    for i in range(200):
         op = random.choice(ops)
         if op == 'get':
             key = random.choice(keys)
@@ -38,7 +38,7 @@ def main():
             if key not in db.keys():
                 out.write('get RET = NULL\n')
             else:
-                out.write('RET = %s\n' % db[key])
+                out.write('get RET = %s\n' % db[key])
         elif op == 'put':
             key = random.choice(keys)
             val = random.choice(values)

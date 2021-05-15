@@ -26,15 +26,23 @@ int qr_length(query_result_t qr) {
   return qr_length(qr->next) + 1;
 }
 
+// qsort C-string comparison function
+int cstring_cmp(const void *a, const void *b) {
+  const char **ia = (const char **)a;
+  const char **ib = (const char **)b;
+  return strcmp(*ia, *ib);
+}
+
 int main() {
 
   char* buf = (char*)malloc(1024);
   size_t len, read;
   db_t db;
+  int counter=0;
   while ((read = getline(&buf, &len, stdin) != -1)) {
     char opcode[64], operand[1024], operand2[1024];
     sscanf(buf, "%s %s %s", opcode, operand, operand2);
-
+    counter++;
     if (strcmp(opcode, "create_db") == 0) {
       db = create_db(operand);
       if (db != NULL) {
@@ -82,7 +90,7 @@ int main() {
         for (int i = 0; i < length; i++, cur = cur->next) {
           result[i] = cur->key;
         }
-        qsort(result, length, sizeof(char*), strcmp);
+        qsort(result, length, sizeof(char*), cstring_cmp);
         printf("query RET = %s", result[0]);
         for (int i = 1; i < length; i++) {
           printf(",%s", result[i]);
