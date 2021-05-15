@@ -2,7 +2,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <stdlib.h>
-
+#include <stdio.h>
 typedef char *key_t;
 typedef char *val_t;
 typedef void *db_t;
@@ -41,16 +41,13 @@ struct Linklist_node *new_Linklist_node(struct Linklist_node *last_node,
 	strcpy(p->value, value);
 	strcpy(p->key, key);
 	p->next = NULL;
-	p->last - last_node;
+	p->last = last_node;
 	return p;
 }
 
 struct Linklist_node *Linklist_insert(struct Linklist_node *root, char value[],
 				      char key[])
 {
-	while (root->next != NULL) {
-		root = root->next;
-	}
 	struct Linklist_node *p = new_Linklist_node(root, value, key);
 	root->next = p;
 	return NULL;
@@ -114,18 +111,37 @@ int hashing(char arr[], int arr_size)
 	return result % 10;
 }
 
-db_t open_db(char* name) {
-  // Please implement this
-  return NULL;
+db_t open_db(char *name)
+{
+	// Please implement this
+	return NULL;
 }
 
-void close_db(db_t db) {
-  // Please implement this
+void close_db(db_t db)
+{
+	// Please implement this
 }
 
+void print_linklist(struct Linklist_node *p)
+{
+	while (p != NULL) {
+		printf("%s:%s-", p->key, p->value);
+		p = p->next;
+	}
+	printf("\n");
+}
 
-// Search the db using key
-// return the value if exist otherwise return NULL
+void print_table(struct data_base *dp)
+{
+	int i = 0;
+	printf("-------------\n");
+	for (i; i < 10; i++) {
+		printf("%d: ", i);
+		print_linklist(dp->table[i]);
+	}
+	printf("--------------\n");
+}
+
 val_t get(db_t db, key_t key)
 {
 	struct data_base *dp = (struct data_base *)db;
@@ -135,15 +151,14 @@ val_t get(db_t db, key_t key)
 		do {
 			if (strcmp(p->key, key) == 0) {
 				return p->value;
-			} else
+			} else {
 				p = p->next;
-		} while (p->next != NULL);
+			}
+		} while (p != NULL);
 	}
 	return NULL;
 }
 
-// Put the key/value pair into db
-// return false if key exist, otherwise return true
 bool put(db_t db, key_t key, val_t val)
 {
 	struct data_base *dp = (struct data_base *)db;
@@ -159,28 +174,33 @@ bool put(db_t db, key_t key, val_t val)
 				break;
 			else
 				p = p->next;
-		} while (p->next != NULL);
+		} while (p != NULL);
 		Linklist_insert(p, val, key);
 	}
+	//print_table(dp);
 	return true;
 }
 
-// Remove the key/value pair from the db
-// Return true if success, false otherwise
 bool remove_key(db_t db, key_t key)
 {
 	int index = hashing(key, strlen(key));
 	struct data_base *dp = (struct data_base *)db;
 	struct Linklist_node *p = Linklist_search_key(dp->table[index], key);
 	if (p != NULL) {
-		if (p->last != NULL) {
-			p->last->next = p->next;
-			free(p);
-		} else {
+		if ((p->last == NULL) && (p->next == NULL)) {
 			dp->table[index] = NULL;
-			free(p);
+		} else if (p->next != NULL && p->last == NULL) {
+			dp->table[index] = p->next;
+			p->next->last = NULL;
+		} else if (p->last != NULL && p->next == NULL) {
+			p->last->next = NULL;
+		} else {
+			p->last->next = p->next;
+			p->next->last = p->last;
 		}
+		free(p);
 		return true;
+		// print_table(dp);
 	}
 	return false;
 }
@@ -220,7 +240,6 @@ query_result_t query(db_t db, val_t value)
 	return root;
 }
 
-// Delete query_result_t
 void delete_query_result(query_result_t qr)
 {
 	if (qr != NULL) {
