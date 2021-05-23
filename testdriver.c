@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "db2.h"
+#include "db.h"
 int counter = 0;
 
 void check(bool ok, char *err_str)
