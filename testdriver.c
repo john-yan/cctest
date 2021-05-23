@@ -2,7 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "db.h"
+#include "db2.h"
+int counter=0;
 
 void check(bool ok, char* err_str) {
   if (!ok) {
@@ -18,8 +19,6 @@ bool one_of_strings(char* target, char* strings[], int length) {
   }
   return false;
 }
-
-size_t getline(char**, size_t*, FILE*);
 
 int qr_length(query_result_t qr) {
   if (qr == NULL) return 0;
@@ -38,7 +37,6 @@ int main() {
   char* buf = (char*)malloc(1024);
   size_t len, read;
   db_t db;
-  int counter=0;
   while ((read = getline(&buf, &len, stdin) != -1)) {
     char opcode[64], operand[1024], operand2[1024];
     sscanf(buf, "%s %s %s", opcode, operand, operand2);
@@ -61,20 +59,20 @@ int main() {
       close_db(db);
       printf("close_db Success.\n");
     } else if (strcmp(opcode, "get") == 0) {
-      key_t key = operand;
+      key_t_ key = operand;
       val_t val = get(db, key);
       printf("get RET = %s\n", val == NULL ? "NULL": val);
     } else if (strcmp(opcode, "put") == 0) {
-      key_t key = operand;
+      key_t_ key = operand;
       val_t val = operand2;
       bool ret = put(db, key, val);
       printf("put RET = %s\n", ret ? "true" : "false");
     } else if (strcmp(opcode, "remove_key") == 0) {
-      key_t key = operand;
+      key_t_ key = operand;
       bool ret = remove_key(db, key);
       printf("remove_key RET = %s\n", ret ? "true" : "false");
     } else if (strcmp(opcode, "update") == 0) {
-      key_t key = operand;
+      key_t_ key = operand;
       val_t val = operand2;
       bool ret = update(db, key, val);
       printf("update RET = %s\n", ret ? "true" : "false");
