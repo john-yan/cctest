@@ -46,15 +46,10 @@ void Linklist_insert(struct Linklist *list_p, void *data)
 	list_p->size++;
 }
 
-bool Linklist_remove(struct Linklist *list_p, int location)
+bool Linklist_remove(struct Linklist *list_p, struct Linklist_node *node_p)
 {
 	if (list_p != NULL) {
-		struct Linklist_node *p = list_p->start;
-		int i = 0;
-		while (p != NULL && i < location) {
-			p = p->next;
-			i++;
-		}
+		struct Linklist_node *p = node_p;
 		if (p != NULL) {
 			if (p->last != NULL && p->next != NULL) {
 				p->last->next = p->next;
@@ -80,14 +75,8 @@ bool Linklist_remove(struct Linklist *list_p, int location)
 	return false;
 }
 
-void *Linklist_get_data(struct Linklist *list_p, int location)
+void *Linklist_get_data(struct Linklist_node *p)
 {
-	int i = 0;
-	struct Linklist_node *p = list_p->start;
-	while (p != NULL && i < location) {
-		p = p->next;
-		i++;
-	}
 	if (p != NULL)
 		return p->data;
 	else
@@ -97,4 +86,28 @@ void *Linklist_get_data(struct Linklist *list_p, int location)
 int Linklist_get_length(struct Linklist *list_p)
 {
 	return list_p->size;
+}
+
+struct Linklist_node *Linklist_next_node(struct Linklist_node *p)
+{
+	if (p == NULL)
+		return NULL;
+	else
+		return p->next;
+}
+
+struct Linklist_node *Linklist_get_start(struct Linklist *list_p)
+{
+	if (list_p != NULL)
+		return list_p->start;
+	else
+		return NULL;
+}
+
+struct Linklist_node *Linklist_get_end(struct Linklist *list_p)
+{
+	if (list_p != NULL)
+		return list_p->end;
+	else
+		return NULL;
 }

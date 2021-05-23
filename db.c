@@ -72,18 +72,15 @@ int hashing(char *arr, int arr_size)
 void print_table(struct data_base *dp)
 {
 	printf("------------------\n");
-	int i2 = 0;
 	struct data_set *data_p;
-	int size = 0;
 	int i = 0;
+	struct Linklist_node *node_p;
 	for (i; i < 10; i++) {
 		printf("%d: ", i);
-		i2 = 0;
-		size = Linklist_get_length(dp->table[i]);
-		for (i2; i2 < size; i2++) {
-			data_p =
-			    (struct data_set *)Linklist_get_data(dp->table[i],
-								 i2);
+		node_p = Linklist_get_start(dp->table[i]);
+		while (node_p != NULL) {
+			data_p = (struct data_set *)Linklist_get_data(node_p);
+			node_p = Linklist_next_node(node_p);
 			if (data_p != NULL)
 				printf("key:%s value:%s-", data_p->key,
 				       data_p->value);
@@ -95,32 +92,25 @@ void print_table(struct data_base *dp)
 	printf("------------------\n");
 }
 
-int search_key(struct Linklist *list_p, char *key)
+struct Linklist_node *search_key(struct Linklist_node *p, char *key)
 {
-	int length = Linklist_get_length(list_p);
-	int current = -1;
-	struct data_set *data_p;
-	bool match = false;
-	int i = 0;
-	for (i; i < length; i++) {
-		data_p = (struct data_set *)Linklist_get_data(list_p, i);
-		if (strcmp(data_p->key, key) == 0) {
-			match = true;
-			current = i;
-			break;
-		}
+	if (p == NULL)
+		return NULL;
+	else {
+		struct data_set *data_p =
+		    (struct data_set *)Linklist_get_data(p);
+		if (strcmp(data_p->key, key) == 0)
+			return p;
+		else
+			return search_key(Linklist_next_node(p), key);
 	}
-	if (match == false)
-		return -2;
-	else
-		return current;
 }
 
 bool put(db_t db, key_t_ key, val_t val)
 {
 	struct data_base *dp = (struct data_base *)db;
 	int index = hashing(key, strlen(key));
-	if (search_key(dp->table[index], key) < 0) {
+	if (search_key(Linklist_get_start(dp->table[index]), key) == NULL) {
 		struct data_set *data_p = malloc(sizeof(struct data_set));
 		data_p->key = malloc(1 + (strlen(key) * sizeof(char)));
 		data_p->value = malloc(1 + (strlen(val) * sizeof(char)));
@@ -138,13 +128,13 @@ bool remove_key(db_t db, key_t_ key)
 	struct data_base *dp = (struct data_base *)db;
 	int index = hashing(key, strlen(key));
 	struct Linklist *target_Linklist = dp->table[index];
-	int result = search_key(target_Linklist, key);
-	if (search_key(target_Linklist, key) < 0) {
+	struct Linklist_node *result =
+	    search_key(Linklist_get_start(dp->table[index]), key);
+	if (result == NULL) {
 		return false;
 	} else {
 		struct data_set *data_p =
-		    (struct data_set *)Linklist_get_data(target_Linklist,
-							 result);
+		    (struct data_set *)Linklist_get_data(result);
 		free(data_p->key);
 		free(data_p->value);
 		Linklist_remove(target_Linklist, result);
@@ -157,12 +147,12 @@ bool update(db_t db, key_t_ key, val_t val)
 {
 	struct data_base *dp = (struct data_base *)db;
 	int index = hashing(key, strlen(key));
-	int result = search_key(dp->table[index], key);
-	if (result < 0) {
+	struct Linklist_node *result =
+	    search_key(Linklist_get_start(dp->table[index]), key);
+	if (result == NULL) {
 		return false;
 	} else {
-		struct data_set *data_p =
-		    Linklist_get_data(dp->table[index], result);
+		struct data_set *data_p = Linklist_get_data(result);
 		free(data_p->value);
 		data_p->value = malloc(1 + (sizeof(strlen(val))));
 		strcpy(data_p->value, val);
@@ -176,12 +166,11 @@ query_result_t query(db_t db, val_t value)
 	struct query_result_ *root = NULL;
 	struct query_result_ *result = NULL;
 	struct data_set *data_p;
-	int i = 0;
-	for (i; i < 10; i++) {
-		int i2 = 0;
-		int length = Linklist_get_length(dp->table[i]);
-		for (i2; i2 < length; i2++) {
-			data_p = Linklist_get_data(dp->table[i], i2);
+	for (int i = 0; i < 10; i++) {
+		for (struct Linklist_node * node_p =
+		     Linklist_get_start(dp->table[i]); node_p != NULL;
+		     node_p = Linklist_next_node(node_p)) {
+			data_p = Linklist_get_data(node_p);
 			if (strcmp(data_p->value, value) == 0) {
 				result =
 				    query_result_insert(result, data_p->key);
@@ -198,12 +187,11 @@ val_t get(db_t db, key_t_ key)
 {
 	struct data_base *dp = (struct data_base *)db;
 	int index = hashing(key, strlen(key));
-	int iterator = search_key(dp->table[index], key);
+	struct Linklist_node *iterator =
+	    search_key(Linklist_get_start(dp->table[index]), key);
 	struct data_set *data_set_p = NULL;
 	if (iterator >= 0) {
-		data_set_p =
-		    (struct data_set *)Linklist_get_data(dp->table[index],
-							 iterator);
+		data_set_p = (struct data_set *)Linklist_get_data(iterator);
 	}
 	if (data_set_p != NULL) {
 		return data_set_p->value;

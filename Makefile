@@ -1,12 +1,12 @@
 
-CFLAGS=-g -O0
+CFLAGS=-g -O0 -std=c99
 
 all: testdriver
 
-Linklist.o: Linklist.c
+Linklist.o: Linklist.c Linklist.h
 	gcc $(CFLAGS) -c Linklist.c -o Linklist.o
 
-db.o: db.c
+db.o: db.c db.h Linklist.o
 	gcc $(CFLAGS) -c db.c -o db.o
 
 testdriver.o: testdriver.c
