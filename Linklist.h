@@ -18,3 +18,5 @@ struct Linklist_node *Linklist_next_node(struct Linklist_node *p);
 struct Linklist_node *Linklist_get_start(struct Linklist *);
 
 struct Linklist_node *Linklist_get_end(struct Linklist *);
+
+void delete_Linklist(struct Linklist *list_p);

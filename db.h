@@ -1,12 +1,25 @@
 #include <stddef.h>
 #include <stdbool.h>
+#include"Linklist.h"
+
 typedef char *key_t_;
 typedef char *val_t;
 typedef void *db_t;
 
+struct data_base {
+	struct Linklist *table[10];
+	char *name;
+};
+
+struct data_set {
+	char *key;
+	char *value;
+};
 db_t create_db(char *name);
+
 db_t open_db(char *name);
-void close_db(char *name);
+
+void close_db(db_t db);
 
 char *get_db_name(db_t db);
 
@@ -28,3 +41,5 @@ typedef struct query_result_ *query_result_t;
 query_result_t query(db_t db, val_t value);
 
 void delete_query_result(query_result_t qr);
+
+void delete_data_base(struct data_base *dp);
