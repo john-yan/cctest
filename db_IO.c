@@ -43,10 +43,13 @@ struct raw_data *analysis(char *str_p)
 	rd->index = 0;
 	int cnt = 0;
 	char *temp = malloc(strlen(str_p));
+    memset(temp,0x0,strlen(str_p));
+    char *temp_p = temp;
 	strcpy(temp, str_p);
 	while (*str_p != '\0') {
 		if (*str_p == ' ' || *str_p == '\n') {
-			char *temp_save = malloc(sizeof(cnt + 1));
+			char *temp_save = malloc(cnt + 1);
+            memset(temp_save,0x0,cnt+1);
 			str_p++;
 			strncpy(temp_save, temp, cnt);
 			raw_data_insert(rd, temp_save);
@@ -58,20 +61,31 @@ struct raw_data *analysis(char *str_p)
 			str_p++;
 		}
 	}
+    free(temp_p);
 	return rd;
 }
-
+void delete_raw_data(struct raw_data* p)
+{
+  for(int i=0;i<3;i++)
+  {
+    free(p->data[i]);
+  }
+  free(p);
+}
 int read_header(int fd)
 {
-	char *indicator = malloc(1);
+	char *indicator = malloc(2);
 	char *temp = malloc(10);
 	memset(temp, 0x0, 10);
+    memset(indicator,0x0,2);
 	ssize_t flag;
 	do {
 		flag = read(fd, indicator, 1);
 		strcat(temp, indicator);
 	} while (*indicator != ' ' && *indicator != '\n' && flag > 0);
 	int result = atoi(temp);
+    free(temp);
+    free(indicator);
 	return result;
 }
 
@@ -82,13 +96,15 @@ struct data_base *readin_data(char *name)
 	if (fd < 0) {
 		close(fd);
 		printf("can't find file\n");
+        free(file_name);
 		return NULL;
 	} else if (fd >= 0) {
 		struct data_base *data_base_p = create_db(name);
 		int header = read_header(fd);
 		while (header > 0) {
 			char *temp = malloc(header);
-			read(fd, temp, header);
+            memset(temp,0x0,header);
+            read(fd,temp,header);
 			printf("%s", temp);
 			struct raw_data *raw_data_p = analysis(temp);
 			int index = atoi(raw_data_p->data[0]);
@@ -99,9 +115,11 @@ struct data_base *readin_data(char *name)
 			strcpy(data_set_p->key, raw_data_p->data[1]);
 			strcpy(data_set_p->value, raw_data_p->data[2]);
 			Linklist_insert(data_base_p->table[index], data_set_p);
-			free(raw_data_p);
+			delete_raw_data(raw_data_p);
+            free(temp);
 			header = read_header(fd);
 		}
+        free(file_name);
 		close(fd);
 		return data_base_p;
 	}
@@ -164,6 +182,8 @@ void write_data(struct data_base *dp)
 		sprintf(index_temp, "%d", -1);
 		write(fd, index_temp, 2);
 		free(index_temp);
+        free(file_name);
 		delete_data_base(dp);
+        close(fd);
 	}
 }
