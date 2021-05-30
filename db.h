@@ -1,20 +1,14 @@
 #include <stddef.h>
 #include <stdbool.h>
-#include"Linklist.h"
 
 typedef char *key_t_;
 typedef char *val_t;
 typedef void *db_t;
 
-struct data_base {
-	struct Linklist *table[10];
-	char *name;
-};
+struct data_base;
 
-struct data_set {
-	char *key;
-	char *value;
-};
+struct data_set;
+
 db_t create_db(char *name);
 
 db_t open_db(char *name);
