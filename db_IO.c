@@ -9,22 +9,9 @@
 #include"Linklist.h"
 #include"db.h"
 #include"db_IO.h"
-#include"db_type.h"
+#include"db_internal.h"
 
 #define DEF_MODE S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH
-
-struct raw_data {
-	int index;
-	char *data[3];
-};
-
-void raw_data_insert(struct raw_data *data, char *str)
-{
-	char *strp = malloc(strlen(str));
-	strcpy(strp, str);
-	data->data[data->index] = strp;
-	data->index++;
-}
 
 char *to_txt_file(char *name)
 {
@@ -64,14 +51,6 @@ struct raw_data *analysis(char *str_p)
 	}
 	free(temp_p);
 	return rd;
-}
-
-void delete_raw_data(struct raw_data *p)
-{
-	for (int i = 0; i < 3; i++) {
-		free(p->data[i]);
-	}
-	free(p);
 }
 
 int read_header(int fd)

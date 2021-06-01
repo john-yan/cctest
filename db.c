@@ -4,19 +4,10 @@
 #include "Linklist.h"
 #include<stdlib.h>
 #include"db_IO.h"
+#include"db_internal.h"
 typedef char *key_t_;
 typedef char *val_t;
 typedef void *db_t;
-
-struct data_base {
-	struct Linklist *table[10];
-	char *name;
-};
-
-struct data_set {
-	char *key;
-	char *value;
-};
 
 struct query_result_ {
 	key_t_ key;
@@ -228,26 +219,3 @@ void delete_query_result(query_result_t qr)
 		return;
 }
 
-void delete_data_set(struct data_set *p)
-{
-	free(p->key);
-	free(p->value);
-	free(p);
-}
-
-void delete_data_base(struct data_base *dp)
-{
-	free(dp->name);
-	struct data_set *data_set_p;
-	struct Linklist_node *node_p;
-	for (int i = 0; i < 10; i++) {
-		node_p = Linklist_get_start(dp->table[i]);
-		while (node_p != NULL) {
-			data_set_p = Linklist_get_data(node_p);
-			delete_data_set(data_set_p);
-			node_p = Linklist_next_node(node_p);
-		}
-		delete_Linklist(dp->table[i]);
-	}
-	free(dp);
-}
