@@ -38,4 +38,4 @@ void delete_query_result(query_result_t qr);
 
 void delete_data_base(struct data_base *dp);
 
-int hashing(char * arr, int arr_size);
+int hashing(char *arr, int arr_size);

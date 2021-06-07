@@ -49,10 +49,10 @@ void delete_data_base(struct data_base *dp)
 	free(dp);
 }
 
-
 void delete_raw_data(struct raw_data *p)
 {
-	for (int i = 0; i < 3; i++) {
+	int index = p->index;
+	for (int i = 0; i < index; i++) {
 		free(p->data[i]);
 	}
 	free(p);

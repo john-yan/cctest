@@ -36,13 +36,12 @@ struct query_result_ *query_result_insert(struct query_result_ *root, char *key)
 db_t create_db(char *name)
 {
 	struct data_base *new_data = malloc(sizeof(struct data_base));
-	int i = 0;
-	for (i; i < 10; i++) {
+	for (int i = 0; i < 10; i++) {
 		new_data->table[i] = create_Linklist();
 	}
-
-	new_data->name = malloc(strlen(name));
-	strcpy(new_data->name, name);
+	new_data->name = malloc(strlen(name) + 1);
+	memset(new_data->name, 0x0, strlen(name) + 1);
+	strncpy(new_data->name, name, strlen(name));
 	return new_data;
 }
 
@@ -129,8 +128,7 @@ bool remove_key(db_t db, key_t_ key)
 	} else {
 		struct data_set *data_p =
 		    (struct data_set *)Linklist_get_data(result);
-		free(data_p->key);
-		free(data_p->value);
+		delete_data_set(data_p);
 		Linklist_remove(target_Linklist, result);
 		//  print_table(dp);
 		return true;
@@ -218,4 +216,3 @@ void delete_query_result(query_result_t qr)
 	} else
 		return;
 }
-

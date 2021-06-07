@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "db.h"
+#include "db_client.h"
 int counter = 0;
 
 void check(bool ok, char *err_str)
@@ -41,6 +41,7 @@ int main()
 {
 	char *buf = (char *)malloc(1024);
 	size_t len, read;
+    int counter=0;
 	db_t db;
 	while ((read = getline(&buf, &len, stdin) != -1)) {
 		char opcode[64], operand[1024], operand2[1024];
@@ -67,6 +68,7 @@ int main()
 			key_t_ key = operand;
 			val_t val = get(db, key);
 			printf("get RET = %s\n", val == NULL ? "NULL" : val);
+            free(val);
 		} else if (strcmp(opcode, "put") == 0) {
 			key_t_ key = operand;
 			val_t val = operand2;
