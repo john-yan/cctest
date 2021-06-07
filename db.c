@@ -3,19 +3,11 @@
 #include<string.h>
 #include "Linklist.h"
 #include<stdlib.h>
+#include"db_IO.h"
+#include"db_internal.h"
 typedef char *key_t_;
 typedef char *val_t;
 typedef void *db_t;
-
-struct data_base {
-	struct Linklist *table[10];
-	char *name;
-};
-
-struct data_set {
-	char *key;
-	char *value;
-};
 
 struct query_result_ {
 	key_t_ key;
@@ -48,7 +40,9 @@ db_t create_db(char *name)
 	for (i; i < 10; i++) {
 		new_data->table[i] = create_Linklist();
 	}
-	new_data->name = name;
+
+	new_data->name = malloc(strlen(name));
+	strcpy(new_data->name, name);
 	return new_data;
 }
 
@@ -199,13 +193,21 @@ val_t get(db_t db, key_t_ key)
 		return NULL;
 }
 
-void close_db(char *name)
+void close_db(db_t db)
 {
+	struct data_base *dp = (struct data_base *)db;
+	write_data(dp);
 }
 
 db_t open_db(char *name)
 {
-	return NULL;
+	struct data_base *dp = readin_data(name);
+	if (dp == NULL)
+		return NULL;
+	else {
+		print_table(dp);
+		return dp;
+	}
 }
 
 void delete_query_result(query_result_t qr)
@@ -216,3 +218,4 @@ void delete_query_result(query_result_t qr)
 	} else
 		return;
 }
+

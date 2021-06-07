@@ -39,7 +39,6 @@ int cstring_cmp(const void *a, const void *b)
 
 int main()
 {
-
 	char *buf = (char *)malloc(1024);
 	size_t len, read;
 	db_t db;
@@ -106,5 +105,6 @@ int main()
 			delete_query_result(qr);
 		}
 	}
+    free(buf);
 	return 0;
 }

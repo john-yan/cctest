@@ -111,3 +111,20 @@ struct Linklist_node *Linklist_get_end(struct Linklist *list_p)
 	else
 		return NULL;
 }
+
+void delete_all_Linklist_node(struct Linklist_node *node_p)
+{
+	if (node_p != NULL) {
+		delete_all_Linklist_node(node_p->next);
+		free(node_p);
+	} else
+		return;
+}
+
+void delete_Linklist(struct Linklist *list_p)
+{
+	if (list_p != NULL) {
+		delete_all_Linklist_node(list_p->start);
+		free(list_p);
+	}
+}
