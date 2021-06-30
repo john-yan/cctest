@@ -127,3 +127,13 @@ void delete_Linklist(struct Linklist *list_p)
 		free(list_p);
 	}
 }
+
+unsigned int sizeof_Linklist()
+{
+  return sizeof(struct Linklist);
+}
+
+unsigned int sizeof_Linklist_node()
+{
+  return sizeof(struct Linklist_node);
+}

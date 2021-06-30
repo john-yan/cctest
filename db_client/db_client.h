@@ -1,38 +1,37 @@
-#include <stddef.h>
-#include <stdbool.h>
-#include<stdio.h>
+#include<stdbool.h>
 
 typedef char *key_t_;
 typedef char *val_t;
 typedef void *db_t;
 
-struct data_base;
+struct query_result {
+	char *key;
+	struct query_result *next;
+};
 
-struct data_set;
+typedef struct connection_descriptor
+{
+  char* name;
+  int connection_status;
+  int network_socket;
+} cd;
 
 db_t create_db(char *name);
 
-db_t open_db(char *name);
-
-void close_db(db_t db);
-
-char *get_db_name(db_t db);
-
-val_t get(db_t db, key_t_ key);
+db_t open_db(char* name);
 
 bool put(db_t db, key_t_ key, val_t val);
 
-bool remove_key(db_t db, key_t_ key);
+char* get(db_t db, key_t_ key);
 
 bool update(db_t db, key_t_ key, val_t val);
 
-struct query_result_ {
-	key_t_ key;
-	struct query_result_ *next;
-};
+bool update_if(db_t db, key_t_ key, val_t old_val, val_t new_val);
 
-typedef struct query_result_ *query_result_t;
+void close_db(db_t db);
 
-query_result_t query(db_t db, val_t value);
+bool query(db_t db, val_t val);
 
-void delete_query_result(query_result_t qr);
+void delete_query_result(struct query_result*);
+
+bool remove_key(db_t db, key_t_ key);

@@ -14,7 +14,7 @@ struct data_set {
 };
 struct raw_data {
 	int index;
-	char *data[3];
+	char *data[5];
 };
 
 void delete_data_base(struct data_base *dp);

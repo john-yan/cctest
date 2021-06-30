@@ -39,3 +39,7 @@ void delete_query_result(query_result_t qr);
 void delete_data_base(struct data_base *dp);
 
 int hashing(char *arr, int arr_size);
+
+void print_table(struct data_base* db_p);
+
+int update_if(db_t , key_t_ key, val_t old_val, val_t new_val);

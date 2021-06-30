@@ -14,7 +14,7 @@ struct data_set {
 };
 struct raw_data {
 	int index;
-	char *data[3];
+	char *data[4];
 };
 
 void raw_data_insert(struct raw_data *data, char *str)

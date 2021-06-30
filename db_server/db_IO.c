@@ -97,8 +97,10 @@ struct data_base *readin_data(char *name)
 				    strlen(raw_data_p->data[0]));
 			struct data_set *data_set_p =
 			    malloc(sizeof(struct data_set));
-			data_set_p->key = malloc(strlen(raw_data_p->data[0]));
-			data_set_p->value = malloc(strlen(raw_data_p->data[1]));
+			data_set_p->key = malloc(strlen(raw_data_p->data[0])+1);
+			data_set_p->value = malloc(strlen(raw_data_p->data[1])+1);
+            memset(data_set_p->key,0x0,strlen(raw_data_p->data[0])+1);
+            memset(data_set_p->value,0x0,strlen(raw_data_p->data[1])+1);
 			strncpy(data_set_p->key, raw_data_p->data[0],
 				strlen(raw_data_p->data[0]));
 			strncpy(data_set_p->value, raw_data_p->data[1],
@@ -110,6 +112,8 @@ struct data_base *readin_data(char *name)
 		}
 		free(file_name);
 		close(fd);
+        //printf("----------\n readin_data\n");
+        //print_table(data_base_p);
 		return data_base_p;
 	}
 	return NULL;
@@ -130,6 +134,8 @@ bool write_data(struct data_base *dp)
 {
 	char *file_name = to_txt_file(dp->name);
 	int fd = open(file_name, O_CREAT | O_TRUNC | O_RDWR, DEF_MODE);
+    //printf("-------\nwrite data\n");
+    //print_table(dp);
 	if (fd < 0) {
 		printf("can't find file");
 		free(file_name);
@@ -162,6 +168,7 @@ bool write_data(struct data_base *dp)
 					data_set_p->key,
 					(int)strlen(data_set_p->value),
 					data_set_p->value);
+                //printf("%s\n",temp);
 				write(fd, temp, line_length);
 				free(temp);
 				node_p = Linklist_next_node(node_p);

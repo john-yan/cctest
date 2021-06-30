@@ -10,21 +10,40 @@
 #include<string.h>
 #include<stdbool.h>
 
-int network_socket;
-int connection_status = -1;
-
 typedef char *key_t_;
 typedef char *val_t;
 typedef void *db_t;
-typedef char *db_name_t;
 
 struct query_result {
 	char *key;
 	struct query_result *next;
 };
 
+typedef struct connection_descriptor
+{
+  char* name;
+  int connection_status;
+  int network_socket;
+} cd;
+
 typedef struct query_result *query_result_t;
 
+cd* cd_init(char* name)
+{
+  cd* cd_p = malloc(sizeof(cd));
+  cd_p->name = malloc(strlen(name)+1);
+  memset(cd_p->name,0x0,strlen(name)+1);
+  strncpy(cd_p->name,name,strlen(name));
+  cd_p->connection_status = -1;
+  cd_p->network_socket = -1;
+  return cd_p;
+}
+
+void delete_cd(cd* cd_p)
+{
+  free(cd_p->name);
+  free(cd_p);
+}
 struct query_result *query_result_insert(struct query_result *root, char *key)
 {
 	struct query_result *new_p = malloc(sizeof(struct query_result));
@@ -97,13 +116,13 @@ struct query_result *query_extract(char *str_p)
 	return NULL;
 }
 
-char *send_comand(char *opcode, char *arg1, char *arg2, char *arg3,
-		  int network_socket)
+char *send_comand(char *opcode, char *arg1, char *arg2, char *arg3, char* arg4, int network_socket)
 {
 	int opcode_len = strlen(opcode);
 	int arg1_len = strlen(arg1);
 	int arg2_len = strlen(arg2);
 	int arg3_len = strlen(arg3);
+    int arg4_len = strlen(arg4);
 	int response_length = 256;
 	char *response = malloc(response_length);
 	memset(response, 0x0, 256);
@@ -129,6 +148,12 @@ char *send_comand(char *opcode, char *arg1, char *arg2, char *arg3,
 		strcat(temp, index_temp);
 		strcat(temp, arg3);
 	}
+    if(arg4_len != 0)
+    {
+      sprintf(index_temp,"%d ",arg4_len);
+      strcat(temp, index_temp);
+      strcat(temp, arg4);
+    }
 	strncpy(send_buff, temp, (int)strlen(temp));
 	send(network_socket, &send_buff, sizeof(send_buff), 0);
 	recv(network_socket, response, response_length, 0);
@@ -145,42 +170,39 @@ bool response_check(char *p)
 		return false;
 }
 
-void connect_to_server()
+void connect_to_server(cd* cd_p)
 {
-	network_socket = socket(AF_INET, SOCK_STREAM, 0);
+	cd_p->network_socket = socket(AF_INET, SOCK_STREAM, 0);
 	struct sockaddr_in server_address;
 	server_address.sin_family = AF_INET;
 	server_address.sin_port = htons(9002);
 	server_address.sin_addr.s_addr = INADDR_ANY;
-	connection_status =
-	    connect(network_socket, (struct sockaddr *)&server_address,
-		    sizeof(server_address));
+	cd_p->connection_status = connect(cd_p->network_socket, (struct sockaddr *)&server_address,sizeof(server_address));
 	int response_length = 256;
 	char *response = malloc(response_length);
 	memset(response, 0x0, 256);
-	if (connection_status == -1)
+	if (cd_p->connection_status == -1)
 		printf("connection false");
 	else {
-		recv(network_socket, response, response_length, 0);
+        send(cd_p->network_socket,"client_t",strlen("client_t"),0);
+		recv(cd_p->network_socket, response, response_length, 0);
 	}
 	free(response);
 }
 
 db_t create_db(char *name)	// 
 {
-	if (connection_status < 0)
-		connect_to_server();
+  cd* cd_p = cd_init(name);
+  connect_to_server(cd_p);
+  int network_socket = cd_p->network_socket;
+  int connection_status = cd_p->connection_status;
 	if (connection_status < 0)
 		printf("false to connect the server\n");
 	else {
-		char *response =
-		    send_comand("create_db", name, "", "", network_socket);
+		char *response = send_comand("create_db", name, "", "","", network_socket);
 		if (response_check(response) == true) {
-			db_name_t name_p = malloc(strlen(name) + 1);
-			memset(name_p, 0x0, strlen(name) + 1);
-			strncpy(name_p, name, strlen(name));
 			free(response);
-			return (void *)name_p;
+			return (void *)cd_p;
 		} else {
 			free(response);
 			return NULL;
@@ -191,33 +213,34 @@ db_t create_db(char *name)	//
 
 void close_db(db_t db)
 {
-	db_name_t name = (db_name_t) db;
+  cd* cd_p = (cd*)db;
+  int connection_status = cd_p->connection_status;
+  int network_socket = cd_p->network_socket;
+  char* name = cd_p-> name;
 	if (connection_status < 0)
 		printf("not connection\n");
 	else {
 		char *response =
-		    send_comand("close_db", name, "", "", network_socket);
+		    send_comand("close_db", name, "", "","", network_socket);
 		free(response);
-		free(name);
 		close(network_socket);
 	}
+    delete_cd(cd_p);
 }
 
 db_t open_db(char *name)
 {
-	if (connection_status < 0)
-		connect_to_server();
-	if (connection_status < 0)
-		printf("flase to connect to server\n");
+  cd* cd_p = cd_init(name);
+  connect_to_server(cd_p);
+  int connection_status = cd_p->connection_status;
+  int network_socket = cd_p -> network_socket;
+  if (connection_status < 0)
+    printf("fail to  connect server\n");
 	else {
-		char *response =
-		    send_comand("open_db", name, "", "", network_socket);
+		char *response = send_comand("open_db", name, "", "","", network_socket);
 		if (response_check(response) == true) {
-			db_name_t name_p = malloc(strlen(name) + 1);
-			memset(name_p, 0x0, strlen(name) + 1);
-			strncpy(name_p, name, strlen(name));
 			free(response);
-			return (void *)name_p;
+			return cd_p;
 		} else {
 			free(response);
 			return NULL;
@@ -226,18 +249,39 @@ db_t open_db(char *name)
 	return NULL;
 }
 
+bool update_if(db_t db, char* key, char* old_val, char* new_val)
+{
+  cd* cd_p = (cd*) db;
+  int connection_status = cd_p->connection_status;
+  int network_socket = cd_p -> network_socket;
+  if (connection_status < 0)
+    printf("not connection\n");
+  else
+  {
+    char* response = send_comand("update_if",key,old_val,new_val,cd_p->name,network_socket);
+    bool result = response_check(response);
+    return result;
+  }
+  return false;
+
+}
+
 char *get_db_name(db_t db)
 {
-	return (char *)db;
+  cd* cd_p = (cd*) db;
+  return cd_p ->name;
 }
 
 bool put(db_t db, key_t_ key, val_t val)
 {
+  cd* cd_p = (cd*) db;
+  int connection_status = cd_p-> connection_status;
+  int network_socket = cd_p -> network_socket;
 	if (connection_status < 0)
 		printf("false to connect to server\n");
 	else {
 		char *response =
-		    send_comand("put", key, val, (char *)db, network_socket);
+		    send_comand("put", key, val, cd_p->name,"", network_socket);
 		bool result = response_check(response);
 		free(response);
 		return result;
@@ -247,11 +291,14 @@ bool put(db_t db, key_t_ key, val_t val)
 
 bool remove_key(db_t db, key_t_ key)
 {
+  cd* cd_p = (cd*) db;
+  int connection_status = cd_p-> connection_status;
+  int network_socket = cd_p -> network_socket;
 	if (connection_status < 0)
 		printf("false to connect to server\n");
 	else {
 		char *response =
-		    send_comand("remove_key", key, (char *)db, "",
+		    send_comand("remove_key", key, cd_p->name, "","",
 				network_socket);
 		bool result = response_check(response);
 		free(response);
@@ -262,11 +309,14 @@ bool remove_key(db_t db, key_t_ key)
 
 bool update(db_t db, key_t_ key, val_t val)
 {
+  cd* cd_p = (cd*) db;
+  int connection_status = cd_p-> connection_status;
+  int network_socket = cd_p -> network_socket;
 	if (connection_status < 0)
 		printf("false to connect to server\n");
 	else {
 		char *response =
-		    send_comand("update", key, val, (char *)db, network_socket);
+		    send_comand("update", key, val, cd_p->name,"", network_socket);
 		bool result = response_check(response);
 		free(response);
 		return result;
@@ -274,20 +324,16 @@ bool update(db_t db, key_t_ key, val_t val)
 	return false;
 }
 
-void free_db_name_t(db_name_t name_p)
-{
-	if (name_p != NULL)
-		free(name_p);
-	return;
-}
-
 query_result_t query(db_t db, val_t val)
 {
+  cd* cd_p = (cd*) db;
+  int connection_status = cd_p-> connection_status;
+  int network_socket = cd_p -> network_socket;
 	if (connection_status < 0)
 		printf("false to connect to server\n");
 	else {
 		char *response =
-		    send_comand("query", val, db, "", network_socket);
+		    send_comand("query", val, cd_p->name,"", "", network_socket);
 		struct query_result *result_p = query_extract(response);
 		free(response);
 		return result_p;
@@ -297,11 +343,14 @@ query_result_t query(db_t db, val_t val)
 
 char *get(db_t db, key_t_ key)
 {
+  cd* cd_p = (cd*) db;
+  int connection_status = cd_p-> connection_status;
+  int network_socket = cd_p -> network_socket;
 	if (connection_status < 0)
 		printf("false to connect to server\n");
 	else {
 		char *response =
-		    send_comand("get", key, db, "", network_socket);
+		    send_comand("get", key, cd_p->name,"", "", network_socket);
 		if (check_is_NULL(response) == true) {
 			free(response);
 			return NULL;
