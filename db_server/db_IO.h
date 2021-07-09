@@ -12,4 +12,8 @@
 
 struct data_base *readin_data(char *name);
 
-void write_data(struct data_base *db);
+bool write_data(struct data_base *db);
+
+struct raw_data *analysis(char *str_p);
+
+int get_bit(int input);

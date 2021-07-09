@@ -64,7 +64,6 @@ bool Linklist_remove(struct Linklist *list_p, struct Linklist_node *node_p)
 				list_p->start = NULL;
 				list_p->end = NULL;
 			}
-			free(p->data);
 			free(p);
 			list_p->size--;
 			return true;
@@ -127,4 +126,14 @@ void delete_Linklist(struct Linklist *list_p)
 		delete_all_Linklist_node(list_p->start);
 		free(list_p);
 	}
+}
+
+unsigned int sizeof_Linklist()
+{
+  return sizeof(struct Linklist);
+}
+
+unsigned int sizeof_Linklist_node()
+{
+  return sizeof(struct Linklist_node);
 }

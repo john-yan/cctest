@@ -14,13 +14,15 @@ struct data_set {
 };
 struct raw_data {
 	int index;
-	char *data[3];
+	char *data[5];
 };
 
 void delete_data_base(struct data_base *dp);
 
 void delete_data_set(struct data_set *p);
 
-void raw_data_insert(struct raw_data*data, char*str);
+void raw_data_insert(struct raw_data *data, char *str);
 
 void delete_raw_data(struct raw_data *p);
+
+void check_free(void *p);

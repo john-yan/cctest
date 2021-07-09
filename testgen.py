@@ -79,6 +79,9 @@ def main():
                 res = ','.join(res)
                 out.write("query RET = %s\n" % res)
 
+    inp.write("close_db db1\n")
+    out.write('close_db Success.\n')
+
     inp.close()
     out.close()
 

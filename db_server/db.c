@@ -36,13 +36,12 @@ struct query_result_ *query_result_insert(struct query_result_ *root, char *key)
 db_t create_db(char *name)
 {
 	struct data_base *new_data = malloc(sizeof(struct data_base));
-	int i = 0;
-	for (i; i < 10; i++) {
+	for (int i = 0; i < 10; i++) {
 		new_data->table[i] = create_Linklist();
 	}
-
-	new_data->name = malloc(strlen(name));
-	strcpy(new_data->name, name);
+	new_data->name = malloc(strlen(name) + 1);
+	memset(new_data->name, 0x0, strlen(name) + 1);
+	strncpy(new_data->name, name, strlen(name));
 	return new_data;
 }
 
@@ -106,10 +105,12 @@ bool put(db_t db, key_t_ key, val_t val)
 	int index = hashing(key, strlen(key));
 	if (search_key(Linklist_get_start(dp->table[index]), key) == NULL) {
 		struct data_set *data_p = malloc(sizeof(struct data_set));
-		data_p->key = malloc(1 + (strlen(key) * sizeof(char)));
-		data_p->value = malloc(1 + (strlen(val) * sizeof(char)));
-		strcpy(data_p->key, key);
-		strcpy(data_p->value, val);
+		data_p->key = malloc(1 + strlen(key));
+        memset(data_p->key,0x0,strlen(key)+1);
+		data_p->value = malloc(1 + strlen(val));
+        memset(data_p->value,0x0,strlen(val)+1);
+		strncpy(data_p->key, key,strlen(key));
+		strncpy(data_p->value, val,strlen(val));
 		Linklist_insert(dp->table[index], data_p);
 		//print_table(dp);
 		return true;
@@ -129,8 +130,7 @@ bool remove_key(db_t db, key_t_ key)
 	} else {
 		struct data_set *data_p =
 		    (struct data_set *)Linklist_get_data(result);
-		free(data_p->key);
-		free(data_p->value);
+		delete_data_set(data_p);
 		Linklist_remove(target_Linklist, result);
 		//  print_table(dp);
 		return true;
@@ -148,8 +148,9 @@ bool update(db_t db, key_t_ key, val_t val)
 	} else {
 		struct data_set *data_p = Linklist_get_data(result);
 		free(data_p->value);
-		data_p->value = malloc(1 + (sizeof(strlen(val))));
-		strcpy(data_p->value, val);
+		data_p->value = malloc(1 + strlen(val));
+        memset(data_p->value,0x0,strlen(val)+1);
+		strncpy(data_p->value,val, strlen(val));
 		return true;
 	}
 }
@@ -199,15 +200,33 @@ void close_db(db_t db)
 	write_data(dp);
 }
 
+int update_if(db_t db,char* key,char* old_val, char* new_val)
+{
+  struct data_base* db_p = (struct data_base*) db;
+  struct Linklist_node* node_p = Linklist_get_start(db_p->table[hashing(key,strlen(key))]);
+  node_p = search_key(node_p,key);
+  if(node_p==NULL)
+    return -1;// error code -1: can't find key
+  else
+  {
+    struct data_set* data_set_p = (struct data_set*)Linklist_get_data(node_p);
+    if(strcmp(data_set_p->value,old_val)==0)
+    {
+      free(data_set_p->value);
+      data_set_p->value=malloc(strlen(new_val)+1);
+      memset(data_set_p->value,0x0,strlen(new_val)+1);
+      strncpy(data_set_p->value,new_val,strlen(new_val));
+      return 1;
+    }
+    else
+      return 0;
+  }
+}
+
 db_t open_db(char *name)
 {
 	struct data_base *dp = readin_data(name);
-	if (dp == NULL)
-		return NULL;
-	else {
-		print_table(dp);
-		return dp;
-	}
+    return dp;
 }
 
 void delete_query_result(query_result_t qr)
@@ -218,4 +237,3 @@ void delete_query_result(query_result_t qr)
 	} else
 		return;
 }
-

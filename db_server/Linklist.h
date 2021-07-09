@@ -20,3 +20,7 @@ struct Linklist_node *Linklist_get_start(struct Linklist *);
 struct Linklist_node *Linklist_get_end(struct Linklist *);
 
 void delete_Linklist(struct Linklist *list_p);
+
+unsigned int sizeof_Linklist();
+
+unsigned int sizeof_Linklist_node();
